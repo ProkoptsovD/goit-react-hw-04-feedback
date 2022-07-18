@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { ThemeProvider } from 'styled-components';
 import { theme } from 'theme';
 
@@ -7,52 +7,61 @@ import FeedbackOptions from './FeedbackOptions';
 import Notification from './Notification';
 import Statistics from './Statistics';
 
-export class App extends Component {
-  state = {
-    good: 0,
-    neutral: 0,
-    bad: 0,
-  }
-  onLeaveFeedback = (e) => {
-    const stat = e.target.name;
+export const App = () => {
+  const [ good, setGood ] = useState(0);
+  const [ neutral, setNeutral ] = useState(0);
+  const [ bad, setBad ] = useState(0);
+  const [ total, setTotal ] = useState(0);
+  const [ positivePercentage, setPositivePercentage ] = useState(0);
 
-    this.setState(prevState => ({
-        [stat]: prevState[stat] += 1,
-      }))
+  const feedbackGradeMap = {
+    'good': () => setGood(good + 1),
+    'neutral': () => setNeutral(neutral + 1),
+    'bad': () => setBad(bad + 1)
   }
-  countTotalFeedback = () => Object.keys(this.state).reduce((total, feedback) => total + this.state[feedback], 0);
-  countPositiveFeedbackPercentage = () => +(this.state.good * 100 / this.countTotalFeedback()).toFixed(0);
-  render () {
-    const { good, neutral, bad } = this.state;
-    const total = this.countTotalFeedback();
-    const positivePercentage = this.countPositiveFeedbackPercentage();
+  const feedbackGrades = Object.keys(feedbackGradeMap);
 
+  const onLeaveFeedback = ({ target: { name} }) => {
+    feedbackGradeMap[name]();
+  }
+  
+  useEffect(() => {
+    const countTotalFeedback = () => good + neutral + bad;
+    const total = countTotalFeedback();
+
+    const countPositiveFeedbackPercentage = () => total && +(good * 100 / total).toFixed(0);
+    const positivePercentage = countPositiveFeedbackPercentage();
+
+    setTotal(total);
+    setPositivePercentage(positivePercentage);
+
+  }, [good, neutral, bad])
+
+    
     return (
       <ThemeProvider theme={theme}>
         <Section
           title="Please leave feedback"
         >
           <FeedbackOptions
-            options={Object.keys(this.state)}
-            onLeaveFeedback={this.onLeaveFeedback}
+            options={feedbackGrades}
+            onLeaveFeedback={onLeaveFeedback}
           />
         </Section>
         <Section
           title="Statistics"
         >
           {
-            total
-              ?  <Statistics
-                    good={good}
-                    neutral={neutral}
-                    bad={bad}
-                    total={total}
-                    positivePercentage={positivePercentage}
-                  />
-              : <Notification message="There is no feedback"/>
+            total ? <Statistics
+                      good={good}
+                      neutral={neutral}
+                      bad={bad}
+                      total={total}
+                      positivePercentage={positivePercentage}
+                    />
+                  : <Notification message="There is no feedback"/>
           }
         </Section>
       </ThemeProvider>
     );
-  }
 };
