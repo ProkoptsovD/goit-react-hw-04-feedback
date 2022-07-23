@@ -11,8 +11,6 @@ export const App = () => {
   const [ good, setGood ] = useState(0);
   const [ neutral, setNeutral ] = useState(0);
   const [ bad, setBad ] = useState(0);
-  const [ total, setTotal ] = useState(0);
-  const [ positivePercentage, setPositivePercentage ] = useState(0);
 
   const feedbackGradeMap = {
     'good': () => setGood(good + 1),
@@ -23,21 +21,13 @@ export const App = () => {
 
   const onLeaveFeedback = ({ target: { name} }) => {
     feedbackGradeMap[name]();
-  }
+  } 
+  const countTotalFeedback = () => good + neutral + bad;
+  const countPositiveFeedbackPercentage = () => total && +(good * 100 / total).toFixed(0);
+
+  const total = countTotalFeedback();
+  const positivePercentage = countPositiveFeedbackPercentage();
   
-  useEffect(() => {
-    const countTotalFeedback = () => good + neutral + bad;
-    const total = countTotalFeedback();
-
-    const countPositiveFeedbackPercentage = () => total && +(good * 100 / total).toFixed(0);
-    const positivePercentage = countPositiveFeedbackPercentage();
-
-    setTotal(total);
-    setPositivePercentage(positivePercentage);
-
-  }, [good, neutral, bad])
-
-    
     return (
       <ThemeProvider theme={theme}>
         <Section
